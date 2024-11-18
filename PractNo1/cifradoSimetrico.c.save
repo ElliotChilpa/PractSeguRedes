@@ -1,0 +1,50 @@
+#include <openssl/evp.h>
+#include <openssl/aes.h>
+#include <stdio.h>
+#include <string.h>
+
+int main() {
+    // Clave y vector de inicialización
+    unsigned char key[32] = "thisisaverysecurekeyforaes256!!!";
+    unsigned char iv[16] = "thisis16bytesiv!";
+
+    // Texto claro
+    unsigned char plaintext[] = "Este es un texto claro a cifrar.";
+    unsigned char ciphertext[128];
+    unsigned char decryptedtext[128];
+
+    int len, ciphertext_len, decryptedtext_len;
+    
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+
+    // Inicializa el cifrado con AES-256-CBC
+    EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv);
+
+    // Cifra el texto claro
+    EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, strlen((char *)plaintext));
+    ciphertext_len = len;
+
+    // Finaliza el cifrado
+    EVP_EncryptFinal_ex(ctx, ciphertext + len, &len);
+    ciphertext_len += len;
+
+    // Inicializa el descifrado con AES-256-CBC
+    EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv);
+
+    // Descifra el texto cifrado
+    EVP_DecryptUpdate(ctx, decryptedtext, &len, ciphertext, ciphertext_len);
+    decryptedtext_len = len;
+
+    // Finaliza el descifrado
+    EVP_DecryptFinal_ex(ctx, decryptedtext + len, &len);
+    decryptedtext_len += len;
+
+    // Agrega terminador nulo al texto descifrado
+    decryptedtext[decryptedtext_len] = '\0';
+
+    printf("Texto descifrado: %s\n", decryptedtext);
+
+    EVP_CIPHER_CTX_free(ctx);
+
+    return 0;
+}
